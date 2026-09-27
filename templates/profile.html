@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Profile — Spendly{% endblock %}
+
+{% block content %}
+
+<section class="profile-page">
+    <div class="profile-inner">
+
+        {% for message in get_flashed_messages() %}
+        <div class="profile-flash">{{ message }}</div>
+        {% endfor %}
+
+        <header class="profile-header">
+            <p class="profile-eyebrow">Your account</p>
+            <h1 class="profile-title">Profile</h1>
+        </header>
+
+        <div class="profile-card profile-user">
+            <div class="profile-avatar">{{ user.initials }}</div>
+            <div class="profile-user-info">
+                <h2 class="profile-user-name">{{ user.name }}</h2>
+                <p class="profile-user-meta">
+                    <i data-lucide="mail" class="profile-icon"></i>
+                    <span>{{ user.email }}</span>
+                </p>
+                <p class="profile-user-meta">
+                    <i data-lucide="calendar" class="profile-icon"></i>
+                    <span>Member since {{ user.member_since }}</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="profile-stats">
+            <div class="profile-card profile-stat">
+                <span class="profile-stat-label">
+                    <i data-lucide="wallet" class="profile-icon"></i>
+                    Total spent
+                </span>
+                <span class="profile-stat-value">₹{{ "{:,.2f}".format(stats.total_spent) }}</span>
+            </div>
+            <div class="profile-card profile-stat">
+                <span class="profile-stat-label">
+                    <i data-lucide="receipt" class="profile-icon"></i>
+                    Transactions
+                </span>
+                <span class="profile-stat-value">{{ stats.transaction_count }}</span>
+            </div>
+            <div class="profile-card profile-stat">
+                <span class="profile-stat-label">
+                    <i data-lucide="tag" class="profile-icon"></i>
+                    Top category
+                </span>
+                <span class="profile-stat-value">{{ stats.top_category }}</span>
+            </div>
+        </div>
+
+        <div class="profile-grid">
+
+            <div class="profile-card">
+                <h2 class="profile-section-title">
+                    <i data-lucide="list" class="profile-icon"></i>
+                    Transaction history
+                </h2>
+                <div class="profile-table-wrap">
+                    <table class="profile-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Category</th>
+                                <th class="num">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in transactions %}
+                            <tr>
+                                <td class="profile-table-date">{{ t.date }}</td>
+                                <td>{{ t.description }}</td>
+                                <td><span class="cat-badge cat-{{ t.category|lower }}">{{ t.category }}</span></td>
+                                <td class="num">₹{{ "{:,.2f}".format(t.amount) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="profile-table-empty">No expenses yet</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="profile-card">
+                <h2 class="profile-section-title">
+                    <i data-lucide="pie-chart" class="profile-icon"></i>
+                    Category breakdown
+                </h2>
+                <ul class="profile-breakdown">
+                    {% for c in categories %}
+                    <li class="profile-breakdown-row cat-{{ c.name|lower }}">
+                        <div class="profile-breakdown-head">
+                            <span class="profile-breakdown-name">
+                                <span class="cat-dot"></span>
+                                {{ c.name }}
+                            </span>
+                            <span class="profile-breakdown-amount">₹{{ "{:,.2f}".format(c.total) }}</span>
+                        </div>
+                        <div class="profile-breakdown-bar">
+                            <progress class="cat-bar" value="{{ c.pct }}" max="100">{{ c.pct }}%</progress>
+                            <span class="profile-breakdown-pct">{{ c.pct }}%</span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
