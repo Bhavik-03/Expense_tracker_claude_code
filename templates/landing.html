@@ -17,7 +17,7 @@
         </p>
         <div class="hero-actions">
             <a href="{{ url_for('register') }}" class="btn-primary">Create free account</a>
-            <a href="#" class="btn-primary">See how it works</a>
+            <a href="#" class="btn-primary" id="how-it-works-trigger">See how it works</a>
         </div>
     </div>
     <div class="hero-visual">
@@ -96,4 +96,120 @@
     </div>
 </section>
 
+<div class="modal-overlay" id="how-it-works-modal" hidden>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-label="How it works">
+        <button type="button" class="modal-close" id="how-it-works-close" aria-label="Close">&times;</button>
+        <div class="modal-video-wrap">
+            <iframe
+                id="how-it-works-iframe"
+                class="modal-video"
+                src=""
+                data-src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                title="How Spendly works"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen>
+            </iframe>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<style>
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 15, 15, 0.65);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        z-index: 1000;
+    }
+
+    .modal-overlay[hidden] { display: none; }
+
+    .modal-box {
+        background: var(--paper-card);
+        border-radius: var(--radius-lg);
+        width: 100%;
+        max-width: 800px;
+        padding: 1rem;
+        position: relative;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    }
+
+    .modal-close {
+        position: absolute;
+        top: -0.75rem;
+        right: -0.75rem;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        background: var(--paper-card);
+        color: var(--ink);
+        font-size: 1.25rem;
+        line-height: 1;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-close:hover { background: var(--paper-warm); }
+
+    .modal-video-wrap {
+        position: relative;
+        width: 100%;
+        padding-top: 56.25%;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        background: #000;
+    }
+
+    .modal-video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+    }
+</style>
+<script>
+    (function () {
+        var trigger = document.getElementById('how-it-works-trigger');
+        var modal = document.getElementById('how-it-works-modal');
+        var closeBtn = document.getElementById('how-it-works-close');
+        var iframe = document.getElementById('how-it-works-iframe');
+
+        function openModal(e) {
+            e.preventDefault();
+            iframe.src = iframe.dataset.src + '?autoplay=1';
+            modal.hidden = false;
+        }
+
+        function closeModal() {
+            modal.hidden = true;
+            iframe.src = '';
+        }
+
+        trigger.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !modal.hidden) {
+                closeModal();
+            }
+        });
+    })();
+</script>
 {% endblock %}
