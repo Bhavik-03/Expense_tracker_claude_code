@@ -31,6 +31,36 @@
             </div>
         </div>
 
+        <div class="profile-card profile-filter">
+            <form method="get" action="{{ url_for('profile') }}" class="profile-filter-form">
+                <label class="profile-filter-field">
+                    <span>From</span>
+                    <input type="date" name="start_date" value="{{ start_date or '' }}">
+                </label>
+                <label class="profile-filter-field">
+                    <span>To</span>
+                    <input type="date" name="end_date" value="{{ end_date or '' }}">
+                </label>
+                <button type="submit" class="btn-primary">Apply</button>
+                {% if filter_active %}
+                <a href="{{ url_for('profile') }}" class="btn-ghost">Clear</a>
+                {% endif %}
+            </form>
+            <nav class="profile-presets">
+                {% for p in presets %}
+                <a href="{{ url_for('profile', start_date=p.start, end_date=p.end) }}"
+                   class="profile-preset{% if p.active %} active{% endif %}">{{ p.label }}</a>
+                {% endfor %}
+            </nav>
+            {% if filter_error %}
+            <div class="profile-filter-error">{{ filter_error }}</div>
+            {% endif %}
+        </div>
+
+        {% if range_label %}
+        <p class="profile-range-label">{{ range_label }}</p>
+        {% endif %}
+
         <div class="profile-stats">
             <div class="profile-card profile-stat">
                 <span class="profile-stat-label">
@@ -82,7 +112,7 @@
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="4" class="profile-table-empty">No expenses yet</td>
+                                <td colspan="4" class="profile-table-empty">{{ "No expenses in this period" if filter_active else "No expenses yet" }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -111,7 +141,7 @@
                         </div>
                     </li>
                     {% else %}
-                    <li class="profile-table-empty">No expenses yet</li>
+                    <li class="profile-table-empty">{{ "No expenses in this period" if filter_active else "No expenses yet" }}</li>
                     {% endfor %}
                 </ul>
             </div>
