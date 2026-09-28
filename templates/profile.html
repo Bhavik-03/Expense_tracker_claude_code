@@ -103,13 +103,15 @@
                                 <span class="cat-dot"></span>
                                 {{ c.name }}
                             </span>
-                            <span class="profile-breakdown-amount">₹{{ "{:,.2f}".format(c.total) }}</span>
+                            <span class="profile-breakdown-amount">₹{{ "{:,.2f}".format(c.amount) }}</span>
                         </div>
                         <div class="profile-breakdown-bar">
                             <progress class="cat-bar" value="{{ c.pct }}" max="100">{{ c.pct }}%</progress>
                             <span class="profile-breakdown-pct">{{ c.pct }}%</span>
                         </div>
                     </li>
+                    {% else %}
+                    <li class="profile-table-empty">No expenses yet</li>
                     {% endfor %}
                 </ul>
             </div>

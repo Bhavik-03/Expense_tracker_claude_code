@@ -9,3 +9,5 @@ __pycache__/
 .claude/plans/
 Screenshot 2026-03-25 at 12.36.20*.png
 spendly_db_view.html
+view_db.py
+tests/
