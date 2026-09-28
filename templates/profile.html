@@ -12,8 +12,11 @@
         {% endfor %}
 
         <header class="profile-header">
-            <p class="profile-eyebrow">Your account</p>
-            <h1 class="profile-title">Profile</h1>
+            <div>
+                <p class="profile-eyebrow">Your account</p>
+                <h1 class="profile-title">Profile</h1>
+            </div>
+            <a href="{{ url_for('add_expense') }}" class="btn-primary profile-add-btn">Add expense</a>
         </header>
 
         <div class="profile-card profile-user">

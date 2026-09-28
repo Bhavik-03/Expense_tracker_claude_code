@@ -1,3 +1,4 @@
+import math
 import sqlite3
 from datetime import date, timedelta
 
@@ -5,7 +6,16 @@ from flask import Flask, abort, flash, g, redirect, render_template, request, se
 from werkzeug.security import check_password_hash
 
 from database import queries
-from database.db import create_user, get_db, get_user_by_email, get_user_by_id, init_db, seed_db
+from database.db import (
+    CATEGORIES,
+    create_expense,
+    create_user,
+    get_db,
+    get_user_by_email,
+    get_user_by_id,
+    init_db,
+    seed_db,
+)
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-key"
@@ -187,9 +197,54 @@ def analytics():
     return render_template("analytics.html")
 
 
-@app.route("/expenses/add")
+@app.route("/expenses/add", methods=["GET", "POST"])
 def add_expense():
-    return "Add expense — coming in Step 7"
+    if g.user is None:
+        return redirect(url_for("login"))
+
+    if request.method == "GET":
+        return render_template(
+            "add_expense.html",
+            categories=CATEGORIES,
+            form={"date": date.today().isoformat()},
+        )
+
+    form = {
+        "amount": request.form.get("amount", "").strip(),
+        "category": request.form.get("category", "").strip(),
+        "date": request.form.get("date", "").strip(),
+        "description": request.form.get("description", "").strip(),
+    }
+
+    error = None
+    try:
+        amount = float(form["amount"])
+    except ValueError:
+        amount = None
+
+    expense_date = _parse_date(form["date"])
+
+    if amount is None or not math.isfinite(amount) or amount <= 0:
+        error = "Amount must be a positive number."
+    elif form["category"] not in CATEGORIES:
+        error = "Please choose a valid category."
+    elif expense_date is None:
+        error = "Please enter a valid date."
+    elif len(form["description"]) > 200:
+        error = "Description must be 200 characters or fewer."
+
+    if error:
+        return render_template("add_expense.html", categories=CATEGORIES, form=form, error=error)
+
+    create_expense(
+        g.user["id"],
+        round(amount, 2),
+        form["category"],
+        expense_date.isoformat(),
+        form["description"] or None,
+    )
+    flash("Expense added.")
+    return redirect(url_for("profile"))
 
 
 @app.route("/expenses/<int:id>/edit")
