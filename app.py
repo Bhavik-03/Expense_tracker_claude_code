@@ -1,9 +1,9 @@
 import sqlite3
-from datetime import datetime
 
 from flask import Flask, abort, flash, g, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash
 
+from database import queries
 from database.db import create_user, get_db, get_user_by_email, get_user_by_id, init_db, seed_db
 
 app = Flask(__name__)
@@ -114,43 +114,12 @@ def profile():
     if not session.get("user_id"):
         return redirect(url_for("login"))
 
-    # The logged-in user's row is already loaded into g.user by load_current_user()
-    name = g.user["name"]
-    user = {
-        "name": name,
-        "email": g.user["email"],
-        "initials": "".join(part[0] for part in name.split()[:2]).upper(),
-        "member_since": datetime.strptime(g.user["created_at"], "%Y-%m-%d %H:%M:%S").strftime("%B %Y"),
-    }
+    user_id = g.user["id"]
+    user = queries.get_user_by_id(user_id)
 
-    # Hardcoded sample data — replaced with real queries in Step 5
-    transactions = [
-        {"date": "2026-09-16", "description": "Dinner out", "category": "Food", "amount": 22.30},
-        {"date": "2026-09-14", "description": "Miscellaneous", "category": "Other", "amount": 9.99},
-        {"date": "2026-09-12", "description": "New shoes", "category": "Shopping", "amount": 45.20},
-        {"date": "2026-09-10", "description": "Movie tickets", "category": "Entertainment", "amount": 15.75},
-        {"date": "2026-09-08", "description": "Pharmacy", "category": "Health", "amount": 20.00},
-        {"date": "2026-09-05", "description": "Electricity bill", "category": "Bills", "amount": 60.00},
-        {"date": "2026-09-04", "description": "Gas", "category": "Transport", "amount": 35.00},
-        {"date": "2026-09-02", "description": "Groceries", "category": "Food", "amount": 12.50},
-    ]
-
-    total_spent = sum(t["amount"] for t in transactions)
-
-    totals = {}
-    for t in transactions:
-        totals[t["category"]] = totals.get(t["category"], 0) + t["amount"]
-
-    categories = [
-        {"name": name, "total": total, "pct": round(total / total_spent * 100)}
-        for name, total in sorted(totals.items(), key=lambda item: item[1], reverse=True)
-    ]
-
-    stats = {
-        "total_spent": total_spent,
-        "transaction_count": len(transactions),
-        "top_category": categories[0]["name"],
-    }
+    transactions = queries.get_recent_transactions(user_id)
+    stats = queries.get_summary_stats(user_id)
+    categories = queries.get_category_breakdown(user_id)
 
     return render_template(
         "profile.html",
