@@ -179,6 +179,14 @@ def _range_label(start, end):
     return None
 
 
+@app.route("/analytics")
+def analytics():
+    if g.user is None:
+        return redirect(url_for("login"))
+
+    return render_template("analytics.html")
+
+
 @app.route("/expenses/add")
 def add_expense():
     return "Add expense — coming in Step 7"
