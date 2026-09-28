@@ -20,6 +20,9 @@
             </a>
             <div class="nav-links">
                 {% if g.user %}
+                <a href="{{ url_for('analytics') }}"
+                   class="{{ 'active' if request.endpoint == 'analytics' }}"
+                   {% if request.endpoint == 'analytics' %}aria-current="page"{% endif %}>Analytics</a>
                 <a href="{{ url_for('profile') }}">{{ g.user['name'] }}</a>
                 <a href="{{ url_for('logout') }}" class="nav-cta">Log out</a>
                 {% else %}

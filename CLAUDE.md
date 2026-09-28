@@ -49,3 +49,7 @@ pytest
 - **`static/css/style.css`** and **`static/js/main.js`** — single global stylesheet/script shared across all pages (no per-page CSS/JS files, no bundler/build step). Fonts are loaded from Google Fonts (`DM Serif Display`, `DM Sans`) directly in `base.html`.
 
 - No authentication, sessions, or database wiring exists yet — `/login` and `/register` currently only render static forms.
+
+## Testing workflow
+
+After implementing any feature/step, invoke the `spendly-test-writer` subagent (`.claude/agents/spendly-test-writer.md`) with the step's spec from `.claude/specs/`. It writes pytest tests from the spec (not the implementation) into `tests/`, reusing the fixtures in `tests/conftest.py`.

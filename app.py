@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import date, timedelta
 
 from flask import Flask, abort, flash, g, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash
@@ -114,12 +115,27 @@ def profile():
     if not session.get("user_id"):
         return redirect(url_for("login"))
 
+    start = _parse_date(request.args.get("start_date"))
+    end = _parse_date(request.args.get("end_date"))
+
+    filter_error = None
+    if start and end and start > end:
+        filter_error = "Start date must be on or before end date."
+        start = end = None
+
+    start_iso = start.isoformat() if start else None
+    end_iso = end.isoformat() if end else None
+
     user_id = g.user["id"]
     user = queries.get_user_by_id(user_id)
 
-    transactions = queries.get_recent_transactions(user_id)
-    stats = queries.get_summary_stats(user_id)
-    categories = queries.get_category_breakdown(user_id)
+    transactions = queries.get_recent_transactions(user_id, start_date=start_iso, end_date=end_iso)
+    stats = queries.get_summary_stats(user_id, start_date=start_iso, end_date=end_iso)
+    categories = queries.get_category_breakdown(user_id, start_date=start_iso, end_date=end_iso)
+
+    presets = _date_presets(date.today())
+    for preset in presets:
+        preset["active"] = (preset["start"], preset["end"]) == (start_iso, end_iso)
 
     return render_template(
         "profile.html",
@@ -127,7 +143,48 @@ def profile():
         stats=stats,
         transactions=transactions,
         categories=categories,
+        start_date=start_iso,
+        end_date=end_iso,
+        filter_active=bool(start_iso or end_iso),
+        presets=presets,
+        range_label=_range_label(start, end),
+        filter_error=filter_error,
     )
+
+
+def _parse_date(value):
+    try:
+        return date.fromisoformat(value.strip())
+    except (AttributeError, ValueError):
+        return None
+
+
+def _date_presets(today):
+    return [
+        {"label": "This month", "start": today.replace(day=1).isoformat(), "end": today.isoformat()},
+        {"label": "Last 30 days", "start": (today - timedelta(days=29)).isoformat(), "end": today.isoformat()},
+        {"label": "This year", "start": today.replace(month=1, day=1).isoformat(), "end": today.isoformat()},
+        {"label": "All time", "start": None, "end": None},
+    ]
+
+
+def _range_label(start, end):
+    fmt = "%d %b %Y"
+    if start and end:
+        return f"Showing {start.strftime(fmt)} – {end.strftime(fmt)}"
+    if start:
+        return f"Showing from {start.strftime(fmt)}"
+    if end:
+        return f"Showing up to {end.strftime(fmt)}"
+    return None
+
+
+@app.route("/analytics")
+def analytics():
+    if g.user is None:
+        return redirect(url_for("login"))
+
+    return render_template("analytics.html")
 
 
 @app.route("/expenses/add")
