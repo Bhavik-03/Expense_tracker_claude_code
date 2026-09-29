@@ -351,6 +351,25 @@ a { color: inherit; text-decoration: none; }
     color: var(--ink);
 }
 
+.btn-danger {
+    display: inline-block;
+    background: var(--danger);
+    color: var(--paper);
+    padding: 0.65rem 1.5rem;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--danger);
+    transition: all 0.2s;
+}
+
+.btn-danger:hover {
+    background: var(--danger-light);
+    color: var(--danger);
+}
+
 /* ------------------------------------------------------------------ */
 /* Features section                                                    */
 /* ------------------------------------------------------------------ */
@@ -508,6 +527,27 @@ select.form-input { cursor: pointer; }
 .form-optional {
     font-weight: 400;
     color: var(--ink-faint);
+}
+
+.delete-summary { margin: 0 0 0.5rem; }
+
+.delete-summary-row {
+    display: grid;
+    grid-template-columns: 7rem 1fr;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.delete-summary dt {
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+}
+
+.delete-summary dd {
+    margin: 0;
+    color: var(--ink);
+    overflow-wrap: anywhere;
 }
 
 .form-actions {
@@ -786,6 +826,15 @@ svg.profile-icon {
 }
 
 .profile-table-edit:hover { text-decoration: underline; }
+
+.profile-table-delete {
+    color: var(--danger);
+    font-weight: 500;
+    text-decoration: none;
+    margin-left: 0.75rem;
+}
+
+.profile-table-delete:hover { text-decoration: underline; }
 
 .profile-table-empty {
     text-align: center;
