@@ -11,10 +11,12 @@ from database.db import (
     create_expense,
     create_user,
     get_db,
+    get_expense_by_id,
     get_user_by_email,
     get_user_by_id,
     init_db,
     seed_db,
+    update_expense,
 )
 
 app = Flask(__name__)
@@ -209,29 +211,8 @@ def add_expense():
             form={"date": date.today().isoformat()},
         )
 
-    form = {
-        "amount": request.form.get("amount", "").strip(),
-        "category": request.form.get("category", "").strip(),
-        "date": request.form.get("date", "").strip(),
-        "description": request.form.get("description", "").strip(),
-    }
-
-    error = None
-    try:
-        amount = float(form["amount"])
-    except ValueError:
-        amount = None
-
-    expense_date = _parse_date(form["date"])
-
-    if amount is None or not math.isfinite(amount) or amount <= 0:
-        error = "Amount must be a positive number."
-    elif form["category"] not in CATEGORIES:
-        error = "Please choose a valid category."
-    elif expense_date is None:
-        error = "Please enter a valid date."
-    elif len(form["description"]) > 200:
-        error = "Description must be 200 characters or fewer."
+    form = _expense_form_from_request()
+    error, amount, expense_date = _validate_expense_form(form)
 
     if error:
         return render_template("add_expense.html", categories=CATEGORIES, form=form, error=error)
@@ -247,9 +228,72 @@ def add_expense():
     return redirect(url_for("profile"))
 
 
-@app.route("/expenses/<int:id>/edit")
+@app.route("/expenses/<int:id>/edit", methods=["GET", "POST"])
 def edit_expense(id):
-    return "Edit expense — coming in Step 8"
+    if g.user is None:
+        return redirect(url_for("login"))
+
+    expense = get_expense_by_id(id, g.user["id"])
+    if expense is None:
+        abort(404)
+
+    if request.method == "GET":
+        form = {
+            "amount": f"{expense['amount']:.2f}",
+            "category": expense["category"],
+            "date": expense["date"],
+            "description": expense["description"] or "",
+        }
+        return render_template("edit_expense.html", categories=CATEGORIES, form=form, expense_id=id)
+
+    form = _expense_form_from_request()
+    error, amount, expense_date = _validate_expense_form(form)
+
+    if error:
+        return render_template(
+            "edit_expense.html", categories=CATEGORIES, form=form, expense_id=id, error=error
+        )
+
+    update_expense(
+        id,
+        g.user["id"],
+        round(amount, 2),
+        form["category"],
+        expense_date.isoformat(),
+        form["description"] or None,
+    )
+    flash("Expense updated.")
+    return redirect(url_for("profile"))
+
+
+def _expense_form_from_request():
+    return {
+        "amount": request.form.get("amount", "").strip(),
+        "category": request.form.get("category", "").strip(),
+        "date": request.form.get("date", "").strip(),
+        "description": request.form.get("description", "").strip(),
+    }
+
+
+def _validate_expense_form(form):
+    try:
+        amount = float(form["amount"])
+    except ValueError:
+        amount = None
+
+    expense_date = _parse_date(form["date"])
+
+    error = None
+    if amount is None or not math.isfinite(amount) or amount <= 0:
+        error = "Amount must be a positive number."
+    elif form["category"] not in CATEGORIES:
+        error = "Please choose a valid category."
+    elif expense_date is None:
+        error = "Please enter a valid date."
+    elif len(form["description"]) > 200:
+        error = "Description must be 200 characters or fewer."
+
+    return error, amount, expense_date
 
 
 @app.route("/expenses/<int:id>/delete")
